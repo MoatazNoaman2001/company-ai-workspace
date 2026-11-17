@@ -52,7 +52,7 @@ jobs:
       - name: Upload release files
         run: |
           tar -czf - -C deploy compose.yaml librechat.yaml .env.example \
-                     -C ../scripts deploy.sh bootstrap-env.sh \
+                     -C ../scripts deploy.sh bootstrap-env.sh tailscale-serve.sh \
             | ssh -o BatchMode=yes "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
                 "mkdir -p $APP_DIR && tar --no-same-owner -xzf - -C $APP_DIR"
 

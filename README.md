@@ -8,7 +8,7 @@ Built as a portfolio delivery. The requirements live in [docs/BRD-Company-AI-Wor
 
 | Milestone | State |
 |---|---|
-| Week 1: LibreChat stack, CI/CD, HTTPS over Tailscale, SSO, model allowlist, budgets, RAG | in progress |
+| Week 1: LibreChat stack, CI/CD, HTTPS over Tailscale (done); SSO, model allowlist, budgets, RAG | in progress |
 | Week 2: ERPNext, governance-api (approvals, audit, spend, token vault), mcp-erpnext, mcp-analytics | planned |
 | Week 3: mcp-m365, mcp-google, governance dashboard, backups and restore drill, go-live tests | planned |
 
