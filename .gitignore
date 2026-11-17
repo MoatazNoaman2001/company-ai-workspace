@@ -1,0 +1,10 @@
+.env
+*.env
+!.env.example
+*.pem
+id_ed25519*
+node_modules/
+dist/
+.next/
+*.log
+.DS_Store

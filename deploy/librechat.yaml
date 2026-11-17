@@ -1,0 +1,42 @@
+# LibreChat configuration for the Company AI Workspace.
+# Keys verified against LibreChat v0.8.8 (config 1.3.17). See docs/DECISIONS.md.
+version: 1.3.17
+cache: true
+
+interface:
+  # FR-15: every conversation, message, shared link and file expires.
+  # Applies only to records saved after this is set, so it is on from day one.
+  retentionMode: all
+  generalChatRetention: 2160   # hours = 90 days
+  temporaryChatRetention: 720  # hours = 30 days
+
+registration:
+  socialLogins: ['openid', 'google']
+  # FR-01: only company accounts. Set when the Entra tenant / Google domain is known.
+  # allowedDomains:
+  #   - "example.com"
+
+# FR-04: per-user budget, reset every 30 days. 1,000,000 credits = 1 USD.
+balance:
+  enabled: true
+  startBalance: 2000000
+  autoRefillEnabled: true
+  refillIntervalValue: 30
+  refillIntervalUnit: 'days'
+  refillAmount: 2000000
+
+transactions:
+  enabled: true
+
+endpoints:
+  agents:
+    # D1 (DECISIONS.md): our approval queue is the real gate. LibreChat's tool approval only
+    # blocks tools that must never run from chat, as a second safety net.
+    toolApproval:
+      enabled: true
+      mode: bypass
+      deny:
+        - "mcp:*:send_*"
+        - "mcp:*:submit_*"
+        - "mcp:*:cancel_*"
+        - "mcp:*:delete_*"

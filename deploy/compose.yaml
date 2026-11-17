@@ -1,0 +1,123 @@
+# Company AI Workspace: production stack.
+# Based on LibreChat v0.8.8 docker-compose.yml, with:
+#   - every image pinned (no :latest)
+#   - published ports bound to ${BIND_IP} only (Tailscale IP on the VPS, never 0.0.0.0)
+#   - databases on the internal network only, with no published ports
+#   - named volumes instead of bind mounts
+name: company-ai
+
+x-restart: &restart
+  restart: unless-stopped
+
+services:
+  api:
+    <<: *restart
+    container_name: company-ai-api
+    image: registry.librechat.ai/librechat-ai/librechat:v0.8.8
+    depends_on:
+      mongodb:
+        condition: service_started
+      rag_api:
+        condition: service_started
+    ports:
+      - "${BIND_IP:?set BIND_IP}:${LIBRECHAT_PORT:-3480}:3080"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3080
+      - MONGO_URI=mongodb://mongodb:27017/LibreChat
+      - MEILI_HOST=http://meilisearch:7700
+      - RAG_PORT=8000
+      - RAG_API_URL=http://rag_api:8000
+      - LIBRECHAT_TEMP_CREDENTIALS_PATH=/app/data/.env.temp
+    volumes:
+      - type: bind
+        source: ./.env
+        target: /app/.env
+        read_only: true
+      - type: bind
+        source: ./librechat.yaml
+        target: /app/librechat.yaml
+        read_only: true
+      - lc-images:/app/client/public/images
+      - lc-uploads:/app/uploads
+      - lc-logs:/app/logs
+      - lc-data:/app/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3080/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  admin-panel:
+    <<: *restart
+    container_name: company-ai-admin
+    image: registry.librechat.ai/clickhouse/librechat-admin-panel:1.0.0
+    depends_on:
+      - api
+    ports:
+      - "${BIND_IP:?set BIND_IP}:${ADMIN_PANEL_PORT:-3481}:3000"
+    environment:
+      - PORT=3000
+      - SESSION_SECRET=${ADMIN_PANEL_SESSION_SECRET}
+      - API_SERVER_URL=http://api:3080
+      - VITE_API_BASE_URL=${DOMAIN_CLIENT}
+      - SESSION_COOKIE_SECURE=${ADMIN_PANEL_SESSION_COOKIE_SECURE:-true}
+
+  mongodb:
+    <<: *restart
+    container_name: company-ai-mongodb
+    image: mongo:8.0.20
+    # No auth: reachable only on the internal compose network (no published port).
+    command: mongod --noauth
+    volumes:
+      - mongo-data:/data/db
+
+  meilisearch:
+    <<: *restart
+    container_name: company-ai-meilisearch
+    image: getmeili/meilisearch:v1.35.1
+    environment:
+      - MEILI_HOST=http://meilisearch:7700
+      - MEILI_NO_ANALYTICS=true
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+    volumes:
+      - meili-data:/meili_data
+
+  vectordb:
+    <<: *restart
+    container_name: company-ai-vectordb
+    image: pgvector/pgvector:0.8.0-pg15-trixie
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgvector-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rag_api:
+    <<: *restart
+    container_name: company-ai-rag-api
+    image: registry.librechat.ai/librechat-ai/librechat-rag-api-dev-lite:v0.9.0
+    depends_on:
+      vectordb:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=vectordb
+      - RAG_PORT=8000
+
+volumes:
+  lc-images:
+  lc-uploads:
+  lc-logs:
+  lc-data:
+  mongo-data:
+  meili-data:
+  pgvector-data:
