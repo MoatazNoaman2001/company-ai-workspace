@@ -12,9 +12,11 @@ interface:
 
 registration:
   socialLogins: ['openid', 'google']
-  # FR-01: only company accounts. Set when the Entra tenant / Google domain is known.
-  # allowedDomains:
-  #   - "example.com"
+  # FR-01: only these email domains may sign in (applies to email, Google and OpenID logins).
+  # Demo setup: personal Gmail via Google (consent screen in Testing mode = only listed test users).
+  # A real company would list its own domain here instead. Add the Entra tenant domain when it exists.
+  allowedDomains:
+    - "gmail.com"
 
 # FR-04: per-user budget, reset every 30 days. 1,000,000 credits = 1 USD.
 balance:
