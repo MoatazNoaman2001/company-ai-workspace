@@ -29,6 +29,21 @@ transactions:
   enabled: true
 
 endpoints:
+  # FR-03: custom providers list approved models explicitly (fetch: false), nothing else appears.
+  custom:
+    - name: 'Groq'
+      apiKey: '${GROQ_API_KEY}'
+      baseURL: 'https://api.groq.com/openai/v1/'
+      models:
+        default:
+          - 'openai/gpt-oss-120b'
+          - 'openai/gpt-oss-20b'
+          - 'qwen/qwen3.8-27b'
+          - 'allam-2-7b'
+        fetch: false
+      titleConvo: true
+      titleModel: 'openai/gpt-oss-20b'
+      modelDisplayLabel: 'Groq'
   agents:
     # D1 (DECISIONS.md): our approval queue is the real gate. LibreChat's tool approval only
     # blocks tools that must never run from chat, as a second safety net.
