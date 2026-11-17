@@ -18,6 +18,14 @@ docker compose pull --quiet
 echo "==> starting stack"
 docker compose up -d --remove-orphans
 
+# `up -d` does not restart containers when only mounted config changed; do it explicitly.
+config_hash=$(cat .env librechat.yaml | sha256sum | cut -d' ' -f1)
+if [ "$(cat .deployed-config-hash 2>/dev/null || true)" != "$config_hash" ]; then
+  echo "==> config changed, restarting app containers"
+  docker compose up -d --force-recreate api rag_api admin-panel
+  echo "$config_hash" > .deployed-config-hash
+fi
+
 echo "==> waiting for LibreChat health"
 status=starting
 for _ in $(seq 1 40); do
