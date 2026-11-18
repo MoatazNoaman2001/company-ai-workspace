@@ -1,20 +1,27 @@
-import type { AddressInfo } from 'node:net';
-import type { Server } from 'node:http';
+import type { INestApplication } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { createApp } from './app.js';
+import { AppModule } from '../src/app.module.js';
+import { APP_CONFIG, loadConfig } from '../src/config/config.module.js';
+import { DRIVE_FETCH } from '../src/drive/drive.module.js';
 
 const SECRET = 's'.repeat(40);
 const driveFetch = vi.fn();
-let server: Server;
+let app: INestApplication;
 let base: string;
 
 beforeAll(async () => {
   vi.spyOn(process.stdout, 'write').mockImplementation(() => true); // keep test output clean
-  server = createApp(SECRET, driveFetch).listen(0);
-  await new Promise((r) => server.once('listening', r));
-  base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  // The real AppModule (guard, filter, controller, services) with Google's API replaced by a mock.
+  const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+    .overrideProvider(APP_CONFIG).useValue(loadConfig({ MCP_SERVICE_SECRET: SECRET }))
+    .overrideProvider(DRIVE_FETCH).useValue(driveFetch)
+    .compile();
+  app = moduleRef.createNestApplication({ logger: false });
+  await app.listen(0);
+  base = (await app.getUrl()).replace('[::1]', '127.0.0.1');
 });
-afterAll(() => server.close());
+afterAll(() => app.close());
 
 function rpc(method: string, params: unknown, headers: Record<string, string> = {}) {
   return fetch(`${base}/mcp`, {
@@ -44,7 +51,7 @@ describe('request guard', () => {
   });
 
   it('refuses to start without a strong secret', () => {
-    expect(() => createApp('short')).toThrow(/MCP_SERVICE_SECRET/);
+    expect(() => loadConfig({ MCP_SERVICE_SECRET: 'short' })).toThrow(/MCP_SERVICE_SECRET/);
   });
 });
 
@@ -62,7 +69,7 @@ describe('MCP over HTTP', () => {
     );
     const body = await (await rpc('tools/call', { name: 'drive_search', arguments: { query: 'leave' } })).json();
     expect(body.result.content[0].text).toContain('Leave policy');
-    expect(driveFetch.mock.calls.at(-1)[1].headers.Authorization).toBe('Bearer google-user-token');
+    expect(driveFetch.mock.calls.at(-1)![1].headers.Authorization).toBe('Bearer google-user-token');
   });
 
   it('returns a tool error (not a crash) when Drive denies access', async () => {

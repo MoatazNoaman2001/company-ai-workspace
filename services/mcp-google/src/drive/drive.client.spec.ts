@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { buildSearchUrl, DriveClient, DriveError, escapeDriveQuery, readStrategy } from './drive.js';
+import { buildSearchUrl, DriveClient, DriveError, escapeDriveQuery, readStrategy } from './drive.client.js';
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
