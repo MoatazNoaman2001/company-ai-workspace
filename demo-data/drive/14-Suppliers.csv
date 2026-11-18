@@ -1,0 +1,7 @@
+supplier_id,name,country,lead_time_days,currency,min_order_egp
+SUP-01,Grundtal Pumpen GmbH,Germany,45,EUR,150000
+SUP-02,Shanghai Flowtech Ltd,China,60,USD,80000
+SUP-03,Istanbul Valf Sanayi,Turkey,21,USD,40000
+SUP-04,Nile Seals & Gaskets,Egypt,7,EGP,10000
+SUP-05,Milano Motori SpA,Italy,35,EUR,120000
+SUP-06,Delta Local Fabrication,Egypt,10,EGP,0

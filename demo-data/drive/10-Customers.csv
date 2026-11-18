@@ -1,0 +1,17 @@
+cust_id,name,tier,credit_limit_egp,payment_terms_days,account_manager_emp_id
+C101,Cairo Water Utilities (fictional),Bronze,1500000,30,E1003
+C102,Red Sea Resorts Group (fictional),Bronze,400000,45,E1003
+C103,Alex Petrochem (fictional),Bronze,400000,30,E1004
+C104,Upper Egypt Agri Co (fictional),Gold,400000,45,E1003
+C105,Sinai Mining Works (fictional),Silver,900000,30,E1003
+C106,Giza Towers Developments (fictional),Bronze,1500000,60,E1005
+C107,Port Said Logistics (fictional),Gold,250000,60,E1005
+C108,Mansoura Food Industries (fictional),Gold,600000,45,E1005
+C109,Suez Cement Partners (fictional),Gold,400000,30,E1005
+C110,Fayoum Irrigation Board (fictional),Bronze,250000,30,E1007
+C111,Hurghada Marina Services (fictional),Gold,1500000,45,E1006
+C112,Tanta Textiles (fictional),Silver,600000,45,E1006
+C113,Ismailia Desal Plant (fictional),Silver,400000,30,E1003
+C114,New Capital Facilities Mgmt (fictional),Bronze,400000,45,E1007
+C115,Assiut Sugar Refinery (fictional),Gold,1500000,30,E1004
+C116,Damietta Furniture Hub (fictional),Bronze,900000,45,E1003

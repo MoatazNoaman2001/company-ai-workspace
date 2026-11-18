@@ -1,0 +1,25 @@
+emp_id,name,department,title,grade,manager_id,hire_date,base_salary_egp,email
+E1001,Walid Lotfy,Executive,General Manager,G5,,2020-12-12,53800,walid.lotfy@deltapv.example
+E1002,Hana Helmy,Sales,Sales Director,G5,E1001,2024-12-10,72400,hana.helmy@deltapv.example
+E1003,Rana Fathy,Sales,Key Account Manager,G4,E1002,2014-11-20,39200,rana.fathy@deltapv.example
+E1004,Bassem Mansour,Sales,Key Account Manager,G4,E1002,2021-01-01,37400,bassem.mansour@deltapv.example
+E1005,Laila Ibrahim,Sales,Sales Representative,G3,E1002,2021-01-02,22800,laila.ibrahim@deltapv.example
+E1006,Habiba Helmy,Sales,Sales Representative,G3,E1002,2022-10-09,28100,habiba.helmy@deltapv.example
+E1007,Omar Sabry,Sales,Sales Representative,G3,E1002,2019-11-05,30200,omar.sabry@deltapv.example
+E1008,Dina Fathy,Sales,Sales Representative,G2,E1002,2023-02-24,19000,dina.fathy@deltapv.example
+E1009,Farida Attia,Sales,Sales Coordinator,G2,E1002,2022-07-15,17400,farida.attia@deltapv.example
+E1010,Aya Kamal,Finance,Finance Manager,G5,E1001,2017-01-09,75800,aya.kamal@deltapv.example
+E1011,Nour Gamal,Finance,Senior Accountant,G3,E1010,2024-09-07,21900,nour.gamal@deltapv.example
+E1012,Dina Attia,Finance,Accountant,G2,E1010,2021-01-04,17900,dina.attia@deltapv.example
+E1013,Nada Attia,Finance,AR Clerk,G1,E1010,2024-11-18,10600,nada.attia@deltapv.example
+E1014,Tarek Ezzat,HR,HR Manager,G4,E1001,2020-12-23,45200,tarek.ezzat@deltapv.example
+E1015,Hana Farouk,HR,HR Specialist,G2,E1014,2022-02-26,17700,hana.farouk@deltapv.example
+E1016,Mariam Ezzat,Operations,Operations Manager,G4,E1001,2023-01-26,42000,mariam.ezzat@deltapv.example
+E1017,Islam Rashad,Operations,Procurement Specialist,G3,E1016,2025-08-02,23600,islam.rashad@deltapv.example
+E1018,Nada Mahmoud,Operations,Planner,G2,E1016,2023-03-15,18300,nada.mahmoud@deltapv.example
+E1019,Youssef Fouad,Warehouse,Warehouse Supervisor,G3,E1001,2023-06-24,27600,youssef.fouad@deltapv.example
+E1020,Sherif Ibrahim,Warehouse,Storekeeper,G1,E1019,2024-12-27,11800,sherif.ibrahim@deltapv.example
+E1021,Amr Saeed,Warehouse,Storekeeper,G1,E1019,2024-03-12,11800,amr.saeed@deltapv.example
+E1022,Tarek Mansour,Warehouse,Forklift Operator,G1,E1019,2023-12-19,9100,tarek.mansour@deltapv.example
+E1023,Ahmed Nabil,IT,IT Manager,G4,E1001,2021-10-22,42300,ahmed.nabil@deltapv.example
+E1024,Sherif Fouad,IT,Systems Administrator,G3,E1023,2019-04-23,26700,sherif.fouad@deltapv.example
