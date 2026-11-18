@@ -73,6 +73,14 @@ Verified 2026-11-17: in v0.8.8 the chat paperclip sends files to the model direc
 - 3072-dim vectors run without an ANN index (pgvector HNSW/IVFFlat cap at 2000 dims). Fine at demo scale; for large corpora switch to a smaller output dimension.
 - Users get file search through prepared agents (e.g. "Company Docs"), so they never choose between upload modes.
 
+### D10. Read-only connectors use LibreChat's per-user MCP OAuth; the token vault comes with write actions
+`mcp-google` (Drive search/read) is the first connector, brought forward from Week 3 (D8). LibreChat v0.8.8 runs the OAuth flow per user (`mcpServers.<name>.oauth`), stores the user's tokens encrypted (`encryptV2`) and sends the access token as `Authorization: Bearer` on each call. The MCP server is stateless: it calls Drive with that token and stores nothing.
+- This refines D3. Read tools act only while the user is in chat, so LibreChat's own token store is enough. The governance-api vault (FR-17) is still needed for **write** actions executed later, after approval (Gmail drafts, ERPNext). It arrives with governance-api in Week 2.
+- Guard on every request: shared `X-Service-Secret` (403 without it) and a user Bearer token (401 + `WWW-Authenticate` without it, which starts the OAuth flow). Internal network only, no published port, read-only container, all capabilities dropped.
+- Scope `drive.readonly`. Google OAuth redirect URI: `DOMAIN_SERVER/api/mcp/google-workspace/oauth/callback`.
+- 403 and 404 from Drive return the same message, so the tool never confirms that a file the user cannot open exists.
+- One JSON log line per tool call (user, tool, parameter summary, outcome, duration; never tokens or contents) until governance-api's audit log exists.
+
 ### D7. CI/CD
 GitHub Actions validates on every push and PR (compose config, YAML, shellcheck, no tracked secrets). On `main` it uploads `deploy/` and `scripts/` to `/opt/company-ai` over SSH with a dedicated deploy key and runs `deploy.sh`. Secrets are generated on the server (`bootstrap-env.sh`) and never pass through GitHub. Images are pinned: LibreChat `v0.8.8`, Admin Panel `1.0.0`, RAG API `v0.9.0`.
 

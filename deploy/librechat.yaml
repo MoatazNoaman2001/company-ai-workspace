@@ -30,6 +30,34 @@ balance:
 transactions:
   enabled: true
 
+# Our MCP connectors live on the internal compose network; LibreChat blocks private hosts unless listed.
+mcpSettings:
+  allowedAddresses:
+    - 'mcp-google:8080'
+
+mcpServers:
+  # FR-08 / D8 / D10: Drive search as the signed-in user. LibreChat runs the Google OAuth flow per user,
+  # stores the token encrypted, and sends it as Bearer; mcp-google never stores tokens.
+  google-workspace:
+    title: 'Google Drive'
+    description: 'Search and read your own Google Drive files (read-only, your permissions).'
+    type: streamable-http
+    url: 'http://mcp-google:8080/mcp'
+    headers:
+      X-Service-Secret: '${MCP_SERVICE_SECRET}'
+      X-User-Email: '{{LIBRECHAT_USER_EMAIL}}'
+      X-User-Id: '{{LIBRECHAT_USER_ID}}'
+    requiresOAuth: true
+    oauth:
+      authorization_url: 'https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&prompt=consent'
+      token_url: 'https://oauth2.googleapis.com/token'
+      client_id: '${GOOGLE_CLIENT_ID}'
+      client_secret: '${GOOGLE_CLIENT_SECRET}'
+      scope: 'https://www.googleapis.com/auth/drive.readonly'
+      token_endpoint_auth_methods_supported: ['client_secret_post']
+    timeout: 30000
+    serverInstructions: 'Use drive_search to find files, then drive_read_file to read them. Answer only from what you read and always cite the file name and link. If nothing relevant is found, say so.'
+
 endpoints:
   # FR-03: custom providers list approved models explicitly (fetch: false), nothing else appears.
   custom:

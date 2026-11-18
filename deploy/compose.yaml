@@ -113,6 +113,18 @@ services:
       - DB_HOST=vectordb
       - RAG_PORT=8000
 
+  # Our MCP connectors: internal network only, no published ports (DECISIONS D8, D10).
+  mcp-google:
+    <<: *restart
+    container_name: company-ai-mcp-google
+    image: ghcr.io/moataznoaman2001/company-ai-mcp-google:${IMAGE_TAG:-main}
+    environment:
+      - PORT=8080
+      - MCP_SERVICE_SECRET=${MCP_SERVICE_SECRET}
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
 volumes:
   lc-images:
   lc-uploads:

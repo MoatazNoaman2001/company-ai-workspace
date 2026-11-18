@@ -1,0 +1,28 @@
+{
+  "name": "mcp-google",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP server: Google Drive search and read as the calling user (read-only, delegated permissions).",
+  "type": "module",
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "express": "5.3.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.6",
+    "@types/node": "22.19.1",
+    "typescript": "5.9.3",
+    "vitest": "4.1.12"
+  }
+}
