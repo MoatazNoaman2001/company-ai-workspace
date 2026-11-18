@@ -150,14 +150,41 @@ docker exec company-ai-mongodb mongosh --quiet LibreChat --eval 'printjson(db.fi
 | `[schedules] scheduler NOT started` | multi-replica guard | `SCHEDULES_SINGLE_PROCESS=true` (single replica) |
 | `tailscale serve` HTTPS fails from the server itself | server does not use MagicDNS for its own name | test with `curl --resolve <host>:8443:<tailscale ip>` or from another tailnet device |
 
-## 9. Backup and restore
+## 9. Connectors (MCP)
+
+`google-workspace` (service `mcp-google`): Drive search/read as the signed-in user, read-only.
+- Google Cloud: Drive API enabled; scope `https://www.googleapis.com/auth/drive.readonly` under Data Access; redirect URI `https://<host>:8443/api/mcp/google-workspace/oauth/callback` on the same Web client.
+- A user connects once from the chat's MCP selector. LibreChat stores the access and refresh tokens encrypted (`tokens` collection, `mcp:google-workspace*`), so no hourly re-consent.
+- Audit trail: one JSON line per tool call (user, tool, parameter summary, outcome, ms), never contents or tokens:
+
+```bash
+docker compose -f /opt/company-ai/compose.yaml logs --since 1d mcp-google | grep tool_call
+```
+
+- A user disconnects from the MCP selector. Admin revocation and the governance audit log come with governance-api (Week 2).
+
+## 10. Admin access from a network that blocks Tailscale
+
+Some networks block Tailscale entirely (the client shows "logged out", control server unreachable). Admins with SSH access can reach the instance through SSH instead. This is an admin workaround only; staff access stays Tailscale-only.
+
+```powershell
+# 1. Tunnel (keep this window open)
+ssh -N -L 8443:<tailscale-ip>:8443 -L 8444:<tailscale-ip>:8444 root@<server-public-ip>
+# 2. Separate browser profile that maps the tailnet name to the tunnel (no admin rights needed)
+& "C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe" --user-data-dir="$env:TEMP\brave-librechat" --host-resolver-rules="MAP <host>.<tailnet>.ts.net 127.0.0.1" https://<host>.<tailnet>.ts.net:8443
+```
+
+The certificate stays valid and Google sign-in / connector OAuth work, because the browser still uses the real hostname.
+
+## 11. Backup and restore
 
 To be written in Week 3 (restic to off-server storage, tested restore).
 
-## 10. Change log
+## 12. Change log
 
 | Date | Change |
 |---|---|
 | 2026-11-17 | Stack deployed (LibreChat v0.8.8), CI/CD, Tailscale HTTPS |
 | 2026-11-17 | Google SSO; admin moved to SSO; email login disabled |
 | 2026-11-17 | Groq and Gemini models; Gemini embeddings; file search verified |
+| 2026-11-18 | mcp-google (Drive read-only) live; first tool calls verified; demo dataset |
