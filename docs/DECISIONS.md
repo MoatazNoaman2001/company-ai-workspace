@@ -81,6 +81,13 @@ Verified 2026-11-17: in v0.8.8 the chat paperclip sends files to the model direc
 - 403 and 404 from Drive return the same message, so the tool never confirms that a file the user cannot open exists.
 - One JSON log line per tool call (user, tool, parameter summary, outcome, duration; never tokens or contents) until governance-api's audit log exists.
 
+### D11. Custom services on NestJS 12
+All custom services (governance-api, MCP connectors, later the dashboard's API side) use **NestJS 12**, scaffolded with the Nest CLI (`nest new`, `nest g module|controller|service|guard|filter`): ESM, Vitest, oxlint.
+- Cross-cutting rules are Nest primitives: `ServiceAuthGuard` (`@Callers`, `@AdminOnly`, `@CurrentActor`) in governance-api, `CallerGuard` in MCP servers, a global `AllExceptionsFilter` (one error shape, no internals leaked), JSON logger.
+- Infrastructure is injected through tokens (`APP_CONFIG`, `DB`, `CLOCK`, `HANDLERS`, `DRIVE_FETCH`), so e2e tests run the real `AppModule` with only infrastructure swapped (PGlite for Postgres, a mock for Google).
+- Data access is plain `pg` with forward-only SQL migrations, so the database enforces invariants itself (append-only audit trigger, CHECK constraints). No ORM for now.
+- MCP endpoints host the official MCP SDK inside a Nest controller (stateless Streamable HTTP).
+
 ### D7. CI/CD
 GitHub Actions validates on every push and PR (compose config, YAML, shellcheck, no tracked secrets). On `main` it uploads `deploy/` and `scripts/` to `/opt/company-ai` over SSH with a dedicated deploy key and runs `deploy.sh`. Secrets are generated on the server (`bootstrap-env.sh`) and never pass through GitHub. Images are pinned: LibreChat `v0.8.8`, Admin Panel `1.0.0`, RAG API `v0.9.0`.
 
