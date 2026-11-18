@@ -63,6 +63,16 @@ Per-role endpoint/model overrides live in the Admin Panel database, not in git. 
 Entra needs an exact HTTPS redirect URI. The VPS is shared with another project whose Caddy already owns ports 80/443, so we do not add a second reverse proxy.
 **Decision:** containers bind to the Tailscale IP only (LibreChat 3480, Admin Panel 3481). `tailscale serve` terminates HTTPS with the tailnet certificate on the MagicDNS name: LibreChat on `:8443`, Admin Panel on `:8444`, governance dashboard on `:8445`. `DOMAIN_CLIENT`/`DOMAIN_SERVER` use that name. This replaces Caddy in BRD section 7. Requires "HTTPS Certificates" enabled in the Tailscale admin console.
 
+### D8. Where agents get company knowledge
+- **Company documents: live connectors with the user's own permissions (main pattern).** Agents search SharePoint/OneDrive (mcp-m365) and Google Drive (mcp-google) at question time with the asking user's delegated token. Results are limited to files that user can already open, always current, never copied. FR-07/FR-08.
+- **Upload (FR-06): only for a user's own, one-off files**, stored privately per user in LibreChat RAG.
+- **Folder sync (Phase 2 department assistants): only for folders everyone may read** (e.g. "Company Policies"), indexed by a sync job, never uploaded by hand. Not used for restricted content, because copying permissions into an index is where leaks happen.
+
+### D9. File search: agent File Search, not chat attachments
+Verified 2026-11-17: in v0.8.8 the chat paperclip sends files to the model directly ("Upload to Provider"). Groq models accept only text, so a PDF returns 400 and the PDF stays in the conversation history, breaking every later turn. Files must be added in the agent's **File Search** tool, which sends them to the RAG API. Pipeline proven: Gemini `gemini-embedding-001` (3072 dims) → pgvector → `/query` → only matching chunks reach the model, with a source citation.
+- 3072-dim vectors run without an ANN index (pgvector HNSW/IVFFlat cap at 2000 dims). Fine at demo scale; for large corpora switch to a smaller output dimension.
+- Users get file search through prepared agents (e.g. "Company Docs"), so they never choose between upload modes.
+
 ### D7. CI/CD
 GitHub Actions validates on every push and PR (compose config, YAML, shellcheck, no tracked secrets). On `main` it uploads `deploy/` and `scripts/` to `/opt/company-ai` over SSH with a dedicated deploy key and runs `deploy.sh`. Secrets are generated on the server (`bootstrap-env.sh`) and never pass through GitHub. Images are pinned: LibreChat `v0.8.8`, Admin Panel `1.0.0`, RAG API `v0.9.0`.
 
