@@ -12,6 +12,8 @@ const schema = z.object({
   /** FR-11 MVP: largest amount a requester may self-confirm (company currency). */
   MVP_SELF_CONFIRM_LIMIT: z.coerce.number().positive().default(50_000),
   APPROVAL_TTL_HOURS: z.coerce.number().positive().default(24),
+  /** How often overdue pending requests are marked expired (0 disables the timer; reads still expire). */
+  SWEEP_INTERVAL_MS: z.coerce.number().int().min(0).default(300_000),
   /** Comma-separated admin emails until role sync (FR-02) feeds governance-api. */
   ADMIN_EMAILS: z.string().default(''),
   /** Base URL of the governance dashboard, used for confirm links. */

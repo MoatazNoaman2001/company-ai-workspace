@@ -1,12 +1,15 @@
-import type { Db, Queryable } from './db.js';
-import { HttpError, PolicyRefusal } from './errors.js';
-import type { ApprovalRow, HandlerRegistry } from './handlers.js';
-import { recordAudit } from './audit.js';
+import { Inject, Injectable } from '@nestjs/common';
+import { recordAudit } from '../audit/audit.store.js';
+import type { Config } from '../core/config.js';
+import type { Db, Queryable } from '../core/db.js';
+import { HttpError, PolicyRefusal } from '../core/errors.js';
+import type { ApprovalRow, HandlerRegistry } from '../core/handlers.js';
+import { APP_CONFIG, CLOCK, DB, HANDLERS, type Clock } from '../core/tokens.js';
 
-export interface ApprovalSettings {
+interface ApprovalSettings {
   ttlHours: number;
   selfConfirmLimit: number;
-  now: () => Date;
+  now: Clock;
 }
 
 export interface CreateInput {
@@ -33,12 +36,18 @@ const json = (v: unknown) => (v === undefined ? null : JSON.stringify(v));
  *   pending -> rejected | expired | stale
  * Nothing executes without a recorded approval step, and each request executes at most once.
  */
-export class ApprovalService {
+@Injectable()
+export class ApprovalsService {
+  private readonly cfg: ApprovalSettings;
+
   constructor(
-    private readonly db: Db,
-    private readonly handlers: HandlerRegistry,
-    private readonly cfg: ApprovalSettings,
-  ) {}
+    @Inject(DB) private readonly db: Db,
+    @Inject(HANDLERS) private readonly handlers: HandlerRegistry,
+    @Inject(APP_CONFIG) config: Config,
+    @Inject(CLOCK) now: Clock,
+  ) {
+    this.cfg = { ttlHours: config.APPROVAL_TTL_HOURS, selfConfirmLimit: config.MVP_SELF_CONFIRM_LIMIT, now };
+  }
 
   async create(input: CreateInput): Promise<ApprovalRow> {
     const handler = this.handlers.get(input.connector, input.action);

@@ -1,13 +1,14 @@
-import type { AddressInfo } from 'node:net';
-import type { Server } from 'node:http';
+import type { INestApplication } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { createTestDb } from '../test/pglite.js';
-import { createApp } from './app.js';
-import { loadConfig } from './config.js';
-import { PolicyRefusal } from './errors.js';
-import { HandlerRegistry, type ActionHandler } from './handlers.js';
-import { migrate } from './migrations.js';
+import { AppModule } from '../src/app.module.js';
+import { loadConfig } from '../src/core/config.js';
+import { PolicyRefusal } from '../src/core/errors.js';
+import { HandlerRegistry, type ActionHandler } from '../src/core/handlers.js';
+import { migrate } from '../src/core/migrations.js';
+import { APP_CONFIG, CLOCK, DB, HANDLERS } from '../src/core/tokens.js';
+import { createTestDb } from './pglite.js';
 
 const MCP = 'm'.repeat(40);
 const DASH = 'd'.repeat(40);
@@ -36,7 +37,7 @@ const handler: ActionHandler = {
 };
 
 let db: Awaited<ReturnType<typeof createTestDb>>;
-let server: Server;
+let app: INestApplication;
 let base: string;
 
 beforeAll(async () => {
@@ -45,15 +46,22 @@ beforeAll(async () => {
   await migrate(db);
   const cfg = loadConfig({
     DATABASE_URL: 'unused', GOV_MCP_SECRET: MCP, GOV_DASHBOARD_SECRET: DASH, MVP_SELF_CONFIRM_LIMIT: '50000',
-    APPROVAL_TTL_HOURS: '24', ADMIN_EMAILS: ADMIN, DASHBOARD_URL: 'https://dash.example',
+    APPROVAL_TTL_HOURS: '24', ADMIN_EMAILS: ADMIN, DASHBOARD_URL: 'https://dash.example', SWEEP_INTERVAL_MS: '0',
   });
-  server = createApp(db, new HandlerRegistry().register(handler), cfg, () => clock).listen(0);
-  await new Promise((r) => server.once('listening', r));
-  base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  // The real AppModule (guards, filter, controllers, services) with test infrastructure swapped in.
+  const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+    .overrideProvider(APP_CONFIG).useValue(cfg)
+    .overrideProvider(DB).useValue(db)
+    .overrideProvider(CLOCK).useValue(() => clock)
+    .overrideProvider(HANDLERS).useValue(new HandlerRegistry().register(handler))
+    .compile();
+  app = moduleRef.createNestApplication({ logger: false });
+  await app.listen(0);
+  base = await app.getUrl();
+  base = base.replace('[::1]', '127.0.0.1');
 });
 afterAll(async () => {
-  server.close();
-  await db.close();
+  await app.close();
 });
 beforeEach(() => {
   clock = new Date('2026-11-18T10:00:00Z');

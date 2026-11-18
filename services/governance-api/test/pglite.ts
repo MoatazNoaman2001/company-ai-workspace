@@ -1,5 +1,5 @@
 import { PGlite } from '@electric-sql/pglite';
-import type { Db, Queryable } from '../src/db.js';
+import type { Db, Queryable } from '../src/core/db.js';
 
 /** Real Postgres (WASM) for tests: same SQL, triggers and constraints as production. */
 export async function createTestDb(): Promise<Db & { raw: PGlite }> {

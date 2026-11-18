@@ -1,4 +1,4 @@
-import type { Queryable } from './db.js';
+import type { Queryable } from '../core/db.js';
 
 export type AuditKind = 'tool_call' | 'approval' | 'model_call' | 'admin';
 
