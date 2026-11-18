@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [mcp-google]
+        service: [mcp-google, governance-api]
     defaults:
       run:
         working-directory: services/${{ matrix.service }}
@@ -67,7 +67,7 @@ jobs:
       packages: write
     strategy:
       matrix:
-        service: [mcp-google]
+        service: [mcp-google, governance-api]
     steps:
       - uses: actions/checkout@v5
       - uses: docker/setup-buildx-action@v3

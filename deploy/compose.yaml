@@ -121,11 +121,50 @@ services:
     environment:
       - PORT=8080
       - MCP_SERVICE_SECRET=${MCP_SERVICE_SECRET}
+      - GOVERNANCE_URL=http://governance-api:8080
+      - GOV_MCP_SECRET=${GOV_MCP_SECRET}
     read_only: true
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
 
+  # FR-11/12/17: approvals, audit, (token vault). Internal only.
+  governance-api:
+    <<: *restart
+    container_name: company-ai-governance-api
+    image: ghcr.io/moataznoaman2001/company-ai-governance-api:${IMAGE_TAG:-main}
+    depends_on:
+      govdb:
+        condition: service_healthy
+    environment:
+      - PORT=8080
+      - DATABASE_URL=postgres://governance:${GOVDB_PASSWORD}@govdb:5432/governance
+      - GOV_MCP_SECRET=${GOV_MCP_SECRET}
+      - GOV_DASHBOARD_SECRET=${GOV_DASHBOARD_SECRET}
+      - MVP_SELF_CONFIRM_LIMIT=${MVP_SELF_CONFIRM_LIMIT:-50000}
+      - APPROVAL_TTL_HOURS=${APPROVAL_TTL_HOURS:-24}
+      - ADMIN_EMAILS=${ADMIN_EMAILS}
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+  govdb:
+    <<: *restart
+    container_name: company-ai-govdb
+    image: postgres:17.7-alpine
+    environment:
+      POSTGRES_DB: governance
+      POSTGRES_USER: governance
+      POSTGRES_PASSWORD: ${GOVDB_PASSWORD}
+    volumes:
+      - govdb-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U governance -d governance"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
+  govdb-data:
   lc-images:
   lc-uploads:
   lc-logs:
